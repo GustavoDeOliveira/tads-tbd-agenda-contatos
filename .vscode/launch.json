@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AgendaContatosApplication<AgendaContatos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "tads.tbd.agendacontatos.AgendaContatos.AgendaContatosApplication",
+            "projectName": "AgendaContatos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-AgendaContatosApplication<AgendaContatos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "tads.tbd.agendacontatos.AgendaContatosApplication",
+            "projectName": "AgendaContatos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

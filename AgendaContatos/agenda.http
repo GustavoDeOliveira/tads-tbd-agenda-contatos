@@ -1,0 +1,69 @@
+@host=http://localhost:8080
+@contatoId=645eb4fae663602f2163cb36
+
+###
+POST {{host}}/api/v1/contatos HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "nome": "Gustavo",
+    "endereco": {
+        "cidade": "Rio Grande",
+        "bairro": "Centro"
+    },
+    "telefones": [
+        {
+            "ddd": 53,
+            "numero": "9999999"
+        }
+    ]
+}
+
+###
+PUT {{host}}/api/v1/contatos/{{contatoId}} HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "nome": "Gustavo",
+    "endereco": {
+        "cidade": "Rio Grande",
+        "bairro": "Centro",
+        "rua": "Fransisco Marques"
+    },
+    "telefones": [
+        {
+            "ddd": 53,
+            "numero": "9999998"
+        },
+        {
+            "ddd": 53,
+            "numero": "9999997"
+        }
+    ]
+}
+
+###
+GET {{host}}/api/v1/contatos HTTP/1.1
+Accept: application/json
+
+###
+GET {{host}}/api/v1/contatos/{{contatoId}} HTTP/1.1
+Accept: application/json
+
+###
+GET {{host}}/api/v1/contatos?buscar=30 HTTP/1.1
+Accept: application/json
+
+###
+GET {{host}}/api/v1/contatos/{{contatoId}}/feed?pular=10&buscar=1 HTTP/1.1
+Accept: application/json
+
+###
+GET {{host}}/api/v1/contatos/{{contatoId}}/feed?pular=0&buscar=100 HTTP/1.1
+Accept: application/json
+
+###
+DELETE {{host}}/api/v1/contatos/{{contatoId}} HTTP/1.1
+Accept: application/json
