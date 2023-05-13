@@ -17,10 +17,10 @@ public abstract class BaseController {
 				.collect(Collectors.toList()));
 	}
 
-	protected <To, Td> ResponseEntity<Map<UUID, Td>> hashMapResponse(
+	protected <To, Td, TKey> ResponseEntity<Map<TKey, Td>> hashMapResponse(
 				List<To> list,
 				Function<? super To,? extends Td> mappingFunction,
-				Function<? super To, ? extends UUID> keyMapper) {
+				Function<? super To, ? extends TKey> keyMapper) {
 
 		return ResponseEntity.ok(list.stream()
 				.collect(Collectors.toMap(keyMapper, mappingFunction)));

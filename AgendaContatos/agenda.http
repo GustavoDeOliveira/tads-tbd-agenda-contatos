@@ -1,5 +1,7 @@
 @host=http://localhost:8080
-@contatoId=645eb4fae663602f2163cb36
+@contatoId=645fc624cada2c00b9fffe12
+#645eb4fae663602f2163cb36
+#645fd6a6e630d7401f53632b
 
 ###
 POST {{host}}/api/v1/contatos HTTP/1.1
@@ -7,15 +9,15 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "nome": "Gustavo",
+    "nome": "Igor",
     "endereco": {
         "cidade": "Rio Grande",
-        "bairro": "Centro"
+        "bairro": "Nossa Senhora dos Navegantes"
     },
     "telefones": [
         {
             "ddd": 53,
-            "numero": "9999999"
+            "numero": "991234567"
         }
     ]
 }
@@ -39,13 +41,13 @@ Content-Type: application/json
         },
         {
             "ddd": 53,
-            "numero": "9999997"
+            "numero": "7999997"
         }
     ]
 }
 
 ###
-GET {{host}}/api/v1/contatos HTTP/1.1
+GET {{host}}/api/v1/contatos?cidade=Rio+Grande HTTP/1.1
 Accept: application/json
 
 ###
@@ -53,15 +55,7 @@ GET {{host}}/api/v1/contatos/{{contatoId}} HTTP/1.1
 Accept: application/json
 
 ###
-GET {{host}}/api/v1/contatos?buscar=30 HTTP/1.1
-Accept: application/json
-
-###
-GET {{host}}/api/v1/contatos/{{contatoId}}/feed?pular=10&buscar=1 HTTP/1.1
-Accept: application/json
-
-###
-GET {{host}}/api/v1/contatos/{{contatoId}}/feed?pular=0&buscar=100 HTTP/1.1
+GET {{host}}/api/v1/contatos/telefones HTTP/1.1
 Accept: application/json
 
 ###

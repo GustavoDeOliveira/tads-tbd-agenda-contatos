@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import tads.tbd.agendacontatos.aplicacao.AgendaService;
+import tads.tbd.agendacontatos.aplicacao.NaoEncontradoException;
 import tads.tbd.agendacontatos.apresentacao.viewmodels.ContatoViewModel;
 import tads.tbd.agendacontatos.negocio.Contato;
 import tads.tbd.agendacontatos.persistencia.ContatoMongoDbRepository;
@@ -29,9 +31,11 @@ import tads.tbd.agendacontatos.persistencia.ContatoMongoDbRepository;
 @RequestMapping("/api/v1/contatos")
 public class ContatosController extends BaseController {
     private ContatoMongoDbRepository repository;
+    private AgendaService service;
 
     public ContatosController() {
         repository = new ContatoMongoDbRepository();
+        service = new AgendaService();
     }
 
     @ResponseStatus(value = HttpStatus.CREATED)
@@ -53,50 +57,54 @@ public class ContatosController extends BaseController {
             @PathVariable ObjectId id,
             @RequestBody ContatoViewModel body) {
 
-        var resultadoInscricao = repository.carregar(id);
-        if (resultadoInscricao.isEmpty()) {
+        var resultado = service.AtualizarContato(id, body);
+
+        if (resultado.isSucesso())
+            return ResponseEntity.ok(resultado.getConteudo());
+        else if (resultado.getErro().isPresent() 
+            && resultado.getErro().get() instanceof NaoEncontradoException) {
             return ResponseEntity.notFound().build();
         }
-
-        var inscricao = resultadoInscricao.get();
-        inscricao.setNome(body.getNome());
-        inscricao.setEndereco(body.getEndereco());
-        inscricao.setTelefones(body.getTelefones());
-        repository.salvar(inscricao);
-
-        return ResponseEntity.ok(inscricao);
+        return ResponseEntity.internalServerError().build();
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Contato> buscar(
+    public ResponseEntity<ContatoViewModel> buscar(
             @PathVariable ObjectId id) {
 
         var contato = repository.carregar(id);
         if (contato.isPresent()) {
-            return ResponseEntity.ok(contato.get());
+            return ResponseEntity.ok(new ContatoViewModel(contato.get()));
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Contato>> listarPorCidade(
-            Optional<Integer> pular,
-            Optional<Integer> buscar,
+    public ResponseEntity<Map<String, ContatoViewModel>> listarPorCidade(
             @RequestParam String cidade) {
 
-        if (pular.isEmpty()) pular = Optional.of(0);
-        if (buscar.isEmpty()) buscar = Optional.of(10);
-        var contatos = repository.listar(pular.get(), buscar.get(), cidade);
+        var contatos = repository.listar(cidade);
         if (contatos.size() > 0) {
-            return ResponseEntity.ok(contatos);
+            return hashMapResponse(contatos, c -> new ContatoViewModel(c), c -> c.getId().toString());
+        } else {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @GetMapping(path = "/telefones", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, ContatoViewModel>> listarPorTelefones() {
+
+        var contatos = repository.listarComMaisDeUmTelefone();
+        if (contatos.size() > 0) {
+            return hashMapResponse(contatos, c -> new ContatoViewModel(c), c -> c.getId().toString());
         } else {
             return ResponseEntity.noContent().build();
         }
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<ContatoViewModel> remover(
+    public ResponseEntity<?> remover(
             @PathVariable ObjectId id) {
                         
         repository.remover(id);

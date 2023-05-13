@@ -8,5 +8,5 @@ public interface Repository<Tid, T extends Serializable> {
     public Optional<T> carregar(Tid id);
     public void salvar(T entidade);
     public void remover(Tid id);
-    public List<T> listar(int pular, int buscar);
+    public List<T> listar();
 }

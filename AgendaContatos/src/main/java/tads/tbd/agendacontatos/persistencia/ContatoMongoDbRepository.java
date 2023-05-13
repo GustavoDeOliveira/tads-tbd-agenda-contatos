@@ -1,26 +1,17 @@
 package tads.tbd.agendacontatos.persistencia;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import static com.mongodb.client.model.Filters.eq;
 
-import org.bson.Document;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.bson.types.ObjectId;
 
-import com.mongodb.client.model.FindOneAndReplaceOptions;
-import com.mongodb.client.model.InsertOneOptions;
-import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.InsertOneResult;
-
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
 
 import tads.tbd.agendacontatos.negocio.Contato;
 
@@ -37,21 +28,18 @@ public class ContatoMongoDbRepository implements Repository<ObjectId, Contato> {
     public Optional<Contato> carregar(ObjectId id) {
         var client = conexao.buscar();
         var db = client.getDatabase(base);
-        return Optional.of(db.getCollection(colecao)
+        return Optional.ofNullable(db.getCollection(colecao)
             .find(eq("_id", id), Contato.class)
             .first());
     }
 
     @Override
     public void salvar(Contato entidade) {
-        var client = conexao.buscar();
-        var db = client.getDatabase(base);
+        var contatos = getContatos();
         if (entidade.getId() != null) {
-            db.getCollection(colecao, Contato.class)
-                .findOneAndReplace(eq("_id", entidade.getId()), entidade);
+            contatos.findOneAndReplace(eq("_id", entidade.getId()), entidade);
         } else {
-            InsertOneResult resultado = db.getCollection(colecao, Contato.class)
-                .insertOne(entidade);
+            InsertOneResult resultado = contatos.insertOne(entidade);
             try {
                 entidade.persistir(resultado.getInsertedId().asObjectId().getValue());
             } catch (Exception e) {
@@ -62,19 +50,41 @@ public class ContatoMongoDbRepository implements Repository<ObjectId, Contato> {
 
     @Override
     public void remover(ObjectId id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'remover'");
+        getContatos()
+            .deleteOne(eq("_id", id));
     }
 
     @Override
-    public List<Contato> listar(int pular, int buscar) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listar'");
+    public List<Contato> listar() {
+        return listar(null, false);
+    }
+
+    public List<Contato> listarComMaisDeUmTelefone() {
+        return listar(null, true);
     }
     
-    public List<Contato> listar(int pular, int buscar, String cidade) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listar'");
+    public List<Contato> listar(String cidade) {
+        return listar(cidade, false);
+    }
+
+    public List<Contato> listar(String cidade, boolean maisDeUmTelefone) {
+        var contatos = getContatos();
+        FindIterable<Contato> query;
+        if (cidade != null) {
+            query = contatos.find(eq("endereco.cidade", cidade));
+        } else if (maisDeUmTelefone) {
+            query = contatos.find(Filters.exists("telefones.1"));
+        } else {
+            query = contatos.find();
+        }
+        List<Contato> resultado = new ArrayList<Contato>();
+        query.into(resultado);
+        return resultado;
     }
     
+    private MongoCollection<Contato> getContatos() {
+        var client = conexao.buscar();
+        var db = client.getDatabase(base);
+        return db.getCollection(colecao, Contato.class);
+    }
 }
